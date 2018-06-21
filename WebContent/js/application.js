@@ -62,34 +62,11 @@ requestData = function(request_url, callback) {
 requestData("getdata?table=batch_errors", function(data) {
     if(data !== false) {
     	rows=data.rows;
-    	series=[];
-    	var Countries = alasql('SELECT distinct S_CNTRY_CDE  FROM ? ',[rows]);
-    	Countries.forEach(function(object){
-    		d1=alasql('SELECT V_MISDATE,count(*) as cnt  FROM ? where S_CNTRY_CDE= ? group by V_MISDATE ',[rows,object.S_CNTRY_CDE]);
-    		var data= [];
-    		d1.forEach(function(object1){
-    			data.push([object1.V_MISDATE,object1.cnt]);
-    			
-    		});
-    		 var obj = new Object();
-    		   obj.type= "column";
-    		   obj.title = object.S_CNTRY_CDE;
-    		   obj.data =data;
-    		   series.push(obj);
-    	});
-    	createChart(series);
-    	//CreateGrid(rows);
+    	CreateGrid(rows);
     	
     	d2=[];
     	
-    	var batch_date= alasql('SELECT distinct V_MISDATE  FROM ? order by V_MISDATE',[rows]);
-    	
-    	batch_date.forEach(function(object1){
-			data.push([object1.V_MISDATE,object1.cnt]);
 			
-		});    	
-
-
     	
 
     	
@@ -98,32 +75,49 @@ requestData("getdata?table=batch_errors", function(data) {
     }
 });
 
-requestData("getdata?table=test123", function(data) {
-    if(data !== false) {
-    	//alert(JSON.stringify(data));
-    } else {
-        callback(false);
-    }
-});
 
 
 
 var CreateGrid=function(rows){
-
+	var lastsel2;
           $("#Grid1").jqGrid({
               datatype: "jsonstring",
+              //editurl:"updatedata",
               datastr:rows,
-              colNames: ['S_CNTRY_CDE', 'S_SEG_CDE', 'V_PGM_CDE', 'I_PASS_NO','I_SEQ_NUM','ERROR_TEXT'],
+              colNames: ['S_CNTRY_CDE', 'S_SEG_CDE', 'V_PGM_CDE', 'L1_UPDATE','ISSUE_CATEGORY','ERROR_TEXT'],
               colModel: [{name: 'S_CNTRY_CDE',index: 'S_CNTRY_CDE',width: 100,align: 'center'},
                   {name: 'S_SEG_CDE',index: 'S_SEG_CDE',width: 100,editable: false,align: 'center',sortable: true,sorttype: 'text'},
                   {name: 'V_PGM_CDE',index: 'V_PGM_CDE',width: 100,editable: false,sortable: true,align: 'center',sorttype: 'text'},
-                  {name: 'I_PASS_NO',index: 'I_PASS_NO',width: 100,editable: false,sortable: true,align: 'center',sorttype: 'text'},
-                  {name: 'I_SEQ_NUM',index: 'I_SEQ_NUM',width: 100,editable: false,sortable: true,align: 'center',sorttype: 'text'},
+                  {name: 'L1_UPDATE',index: 'L1_UPDATE',width: 100,editable: true,sortable: true,align: 'center',sorttype: 'text'},
+                  {name: 'ISSUE_CATEGORY',index: 'ISSUE_CATEGORY',width: 100,editable:true, edittype:"select",formatter:'select', editoptions:{value:"DB:DBERRORS;APP:APPLICATION;BATCH:BATCHERROS"}},
                   {name: 'ERROR_TEXT',index: 'ERROR_TEXT',width: 100,editable: false,sortable: true,align: 'center',sorttype: 'text'}],
               pager: jQuery('#pager1'),
               loadonce: true,
               rowNum: 13,
               height:'auto',
+              onSelectRow: function(id){
+                  if(id && id!==lastsel2){
+                	  $("#Grid1").restoreRow(lastsel2);
+                	  $("#Grid1").editRow(id,true);
+                      lastsel2=id;
+                  }
+                },
+                inlineEditing: {
+                    keys: true,
+                    serializeSaveData: function (postData) {
+                        var changedData = {}, prop, p = $(this).jqGrid("getGridParam"),
+                            idname = p.keyName || p.prmNames.id;
+
+                        for (prop in postData) {
+                            if (postData.hasOwnProperty(prop) &&
+                                (postData[prop] !== p.savedRow[0][prop] || prop === idname)) {
+                                changedData[prop] = postData[prop];
+                            }
+                        }
+                        alert(JSON.stringify(changedData));
+                        return changedData;
+                    }
+                },
               width:1500,
               rowList: [10, 20, 30],
               sortname: 'MODULE',
@@ -133,6 +127,6 @@ var CreateGrid=function(rows){
               rownumbers: true, // show row numbers
               rownumWidth: 25, // the width of the row numbers columns
               sortable: true
-          }).jqGrid('navGrid', '#pager1', {refresh: true,edit: false,add: false,del: false,search: true});
+          });
           
           };
