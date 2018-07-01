@@ -35,10 +35,11 @@ public class getFromDB {
     	int total = -1;
 		String tableName=req.getParameter("table");
 		String where=req.getParameter("where"); 
+		String query=req.getParameter("query");
+		
 		if (where == null){where=" ";};
-		System.out.println("Table Name :"+tableName);
-		System.out.println("WhereCondition :"+where);
-		System.out.println("Query :"+"select * from "+tableName+" "+where);
+		if ( query == null) {query="select * from "+tableName+" "+where;}
+		System.out.println("Query :"+query);
 		
 		if (tableName =="dummy") {};
     	
@@ -55,13 +56,33 @@ public class getFromDB {
 
             Connection conn = DriverManager.getConnection(dbURL,username,password);
             
-            ps=conn.prepareStatement("select * from "+tableName+" "+where);
-      	  	JSONArray jsonArray = new JSONArray();
-            ResultSetAdapter test= new ResultSetAdapter(ps.executeQuery());
-            Iterator<Map<String, Object>> t1 = test.iterator();
-            while(t1.hasNext()) {
-            	jsonArray.put(t1.next());
+            ps=conn.prepareStatement(query);
+            ResultSet resultSet = ps.executeQuery();
+  
+            JSONArray jsonArray = new JSONArray();
+            while (resultSet.next()) {
+                int total_rows = resultSet.getMetaData().getColumnCount();
+                JSONObject obj = new JSONObject();
+                for (int i = 0; i < total_rows; i++) {
+                    String columnName = resultSet.getMetaData().getColumnLabel(i + 1);
+                    Object columnValue = resultSet.getObject(i + 1);
+                    // if value in DB is null, then we set it to default value
+                    if (columnValue == null){
+                        columnValue = "";
+                    }
+                    /*
+                    Next if block is a hack. In case when in db we have values like price and price1 there's a bug in jdbc - 
+                    both this names are getting stored as price in ResulSet. Therefore when we store second column value,
+                    we overwrite original value of price. To avoid that, i simply add 1 to be consistent with DB.
+                     */
+                    if (obj.has(columnName)){
+                        columnName += "1";
+                    }
+                    obj.put(columnName, columnValue);
+                }
+                jsonArray.put(obj);
             }
+            
 
       	total = jsonArray.length();
       	String Pageheader="page\":1"+",\"total\":\""+String.valueOf(Math.ceil((double) total / pageSize))+"\",\"records\":\""+String.valueOf(total)+"\",\"rows";

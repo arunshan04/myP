@@ -33,6 +33,8 @@
     <script type="text/ecmascript" src="js/bootstrap-datepicker.js"></script> 
     <script type="text/ecmascript" src="js/bootstrap3-typeahead.js"></script> 
     <link rel="stylesheet" type="text/css" media="screen" href="css/bootstrap-datepicker.css" />
+    	<script type="text/javascript" language="javascript" src="//cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
+    
 
         
         
@@ -42,20 +44,19 @@
 
 </head>
 <body>
-    <div>
-        <div id="jqChart" style="width: 500px; height: 300px;"></div>
-    </div>
-    
-	<div>
-        <div id="jqChart1" style="width: 500px; height: 300px;"></div>
-    </div>
     
     <div>
         <div id="Grid2" style="width: 500px; height: 30px;"></div>
         <table id="Grid1"></table>
 			<div id="pager1"></div>
-        
     </div>
+    
+    <table id="list"></table>
+			<div id="pager1"></div>
+            <button id="export">Export to Excel</button>
+        <button id="SAVE">Save Changes</button>
+        
+    
     
 </body>
 </html>

@@ -1,10 +1,13 @@
 package getData;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Iterator;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -12,6 +15,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.HTTP;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -65,15 +69,74 @@ public class updatedata extends HttpServlet {
 		// TODO Auto-generated method stub
 
 		//doGet(request, response);
-	     		response.setContentType("application/json");       
-	            StringBuilder sb = new StringBuilder();
-	            String s;
-	            while ((s = request.getReader().readLine()) != null) {
-	                sb.append(s);
-	                System.out.println(s);
-	            }
-	            System.out.println(sb.toString());
-	            /*
+		 StringBuffer jb = new StringBuffer();
+		  String line = null;
+		  try {
+		    BufferedReader reader = request.getReader();
+		    while ((line = reader.readLine()) != null)
+		      jb.append(line.trim());
+		  } catch (Exception e) { /*report an error*/ }
+		  System.out.println(jb.toString());
+		  String query=request.getParameter("data");
+		  System.out.println("********************"+query);
+		try {
+			JSONObject jObject 	= new JSONObject (jb.toString());
+			JSONObject data 	= (JSONObject) jObject.get("data");
+			JSONObject rows 	= (JSONObject) data.get("rows");
+			String		tablename = (String) data.get("table");
+
+			Class.forName("oracle.jdbc.OracleDriver");
+            String username="system";
+            String password="oracle";
+            String dbURL="jdbc:oracle:thin:@(DESCRIPTION =(ADDRESS_LIST =(ADDRESS =(PROTOCOL=TCP)(HOST=localhost)(PORT=49161)))(CONNECT_DATA=(SID=xe)(SERVER=DEDICATED)))";
+
+            
+            Connection conn = DriverManager.getConnection(dbURL,username,password);
+            
+
+
+
+			System.out.println(rows);
+			System.out.println(tablename);
+			
+			Iterator<?> keys = rows.keys();
+			while(keys.hasNext() ) {
+				String rowid = (String)keys.next();
+				System.out.println(rowid);
+				if ( rows.get(rowid) instanceof JSONObject ) {
+					JSONObject columns = (JSONObject) rows.get(rowid);
+					Iterator<?> keys1 = columns.keys();
+					while(keys1.hasNext() ) {
+						String columnName=(String)keys1.next();
+						String columnValue=(String)columns.get(columnName);
+						String updateTableSQL = "UPDATE "+tablename+" SET "+columnName+" = ? WHERE rowid = ?";
+						PreparedStatement preparedStatement = conn.prepareStatement(updateTableSQL);
+						preparedStatement.setString(1, columnValue);
+						preparedStatement.setString(2, rowid);
+						System.out.println(updateTableSQL);
+						preparedStatement.executeUpdate();
+						System.out.println(rowid+columnName+columnValue+preparedStatement.getUpdateCount());
+						
+					}
+					
+
+				}
+
+			}
+			
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+
+		        /*
 	            try {
 					JSONObject jObject = new JSONObject(sb.toString());
 					String tablename=jObject.getString("tablename");

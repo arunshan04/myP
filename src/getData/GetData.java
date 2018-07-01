@@ -57,9 +57,18 @@ public class GetData {
             rs=ps.executeQuery();
             ResultSetMetaData rsmd = rs.getMetaData();
       	  	int columnsNumber = rsmd.getColumnCount();
+      	  	int i=0;
+      	  	String command="";
+      	  	for (i=1;i<=columnsNumber;i++) {
+      	  		command=command+","+(rsmd.getColumnName(i));
+      	  		
+      	  	}
+      	  System.out.println(command);
+      	  	
       	  	JSONArray jsonArray = new JSONArray();
+      	  	String t1="rsmd.getColumnName(1)+\"=\"+rs.getObject(1)+\", \"+rsmd.getColumnName(2)+\"=\"+rs.getObject(2)";
       	  while (rs.next()) {
-      		  	System.out.println(rs.getObject(1));
+      		  	System.out.println(t1);
               }
       	  
 
